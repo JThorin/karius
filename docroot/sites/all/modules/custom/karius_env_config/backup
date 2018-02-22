@@ -1,0 +1,37 @@
+<?php
+
+function prod_env($enable) {
+	if ($enable) {
+		if (module_exists('devel')) {
+			module_disable(array('devel'));
+			drupal_set_message('Devel module disabled.');
+		}
+		variable_set('mail_system', array(
+			'default-system' => 'MimeMailSystem',
+			'mimemail' => 'MimeMailSystem'
+		));
+	} else {
+		if (!module_exists('devel')) {
+			module_enable(array('devel'));
+			drupal_set_message('Devel module enabled.');
+		}
+		variable_set('mail_system', array(
+			'default-system' => 'DevelMailLog',
+			'mimemail' => 'DevelMailLog'
+		));
+	}
+
+}
+
+/**
+ * Implements hook_init().
+ */
+function natera_deployment_init() {
+	switch ($_ENV['AH_SITE_ENVIRONMENT']) {
+		case 'prod':
+			prod_env(true);
+			break;
+		default:
+			prod_env(false);
+	}
+}

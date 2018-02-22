@@ -1,0 +1,229 @@
+<?php
+/**
+ * @file
+ * Integration with the Smartmenus jQuery plugin for responsive menus.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function smartmenus_theme($existing, $type, $theme, $path) {
+  return array(
+    'smartmenus_menu' => array(
+      'variables' => array(
+        'tree' => array(),
+        'attributes' => array(),
+        'toggle' => TRUE,
+      ),
+      'file' => 'smartmenus.theme.inc',
+    ),
+    'smartmenus_menu_tree' => array(
+      'variables' => array(
+        'tree' => array(),
+        'attributes' => array(),
+      ),
+      'file' => 'smartmenus.theme.inc',
+    ),
+    'smartmenus_toggle' => array(
+      'variables' => array(
+        'menu_id' => array(),
+        'text' => '',
+      ),
+      'file' => 'smartmenus.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function smartmenus_menu() {
+  $items['admin/config/user-interface/smartmenus'] = array(
+    'title' => 'Smartmenus',
+    'description' => 'Smartmenus settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smartmenus_settings_form'),
+    'access arguments' => array('administer smartmenus settings'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'smartmenus.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function smartmenus_permission() {
+  return array(
+    'administer smartmenus' => array(
+      'title' => t('Administer Smartmenus'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function smartmenus_block_info() {
+  // Generate no. of blocks.
+  foreach (range(1, variable_get('smartmenus_block_count', 1)) as $delta) {
+    $blocks['smartmenus_' . $delta] = array(
+      'info' => t('Responsive drop-down Smartmenu #' . $delta),
+      'cache' => DRUPAL_CACHE_PER_ROLE,
+    );
+  }
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function smartmenus_block_configure($delta) {
+  $form['smartmenus'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Smartmenus Settings'),
+  );
+  $form['smartmenus']['smartmenus_menu_' . $delta] = array(
+    '#type' => 'select',
+    '#title' => t('Menu'),
+    '#options' => menu_get_menus(),
+    '#description' => t('The desired menu to render as a Smartmenu.'),
+    '#default_value' => variable_get('smartmenus_menu_' . $delta, 'main-menu:0'),
+  );
+  $form['smartmenus']['smartmenus_toggle_' . $delta] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display a menu toggle button on small screens'),
+    '#default_value' => variable_get('smartmenus_toggle_' . $delta, TRUE),
+  );
+  $form['smartmenus']['smartmenus_orient_' . $delta] = array(
+    '#type' => 'radios',
+    '#title' => t('Orientation'),
+    '#options' => array(
+      'vertical' => t('Vertical'),
+      'horizontal' => t('Horizontal'),
+    ),
+    '#default_value' => variable_get('smartmenus_orient_' . $delta, 'horizontal'),
+  );
+
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function smartmenus_block_save($delta, $edit) {
+  // Save menu instance settings.
+  variable_set('smartmenus_menu_' . $delta, $edit['smartmenus_menu_' . $delta]);
+  variable_set('smartmenus_orient_' . $delta, $edit['smartmenus_orient_' . $delta]);
+  variable_set('smartmenus_toggle_' . $delta, $edit['smartmenus_toggle_' . $delta]);
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function smartmenus_block_view($delta = '') {
+  $block = array();
+
+  // Load the menu and all it's data.
+  $smartmenu = explode(':', variable_get('smartmenus_menu_' . $delta, 'main-menu:0'));
+  $menu = menu_tree_all_data($smartmenu[0]);
+
+  // Allow i18n module to translate strings where available.
+  if (module_exists('i18n_menu')) {
+    $menu = i18n_menu_localize_tree($menu);
+  }
+
+  $id = drupal_clean_css_identifier($delta);
+
+  // Return a renderable array.
+  $block['content'] = array(
+    '#theme' => 'smartmenus_menu',
+    '#tree' => $menu,
+    '#toggle' => variable_get('smartmenus_toggle_' . $delta, TRUE),
+    '#attributes' => array(
+      'id' => $id,
+      'class' => array('sm'),
+    ),
+    '#attached' => array(
+      'css' => array(
+        // Adjust the smartmenus to fall below contextual links.
+        array(
+          'data' => '.sm { z-index: 998; }',
+          'type' => 'inline',
+          'weight' => 1000,
+        ),
+      ),
+      'js' => array(
+        // Activate the menu.
+        drupal_get_path('module', 'smartmenus') . '/js/smartmenus.js' => array('type' => 'file'),
+      ),
+      // Add the library.
+      'libraries_load' => array(array('smartmenus')),
+    ),
+  );
+
+  // Add theme class.
+  $smtheme = variable_get('smartmenus_theme', FALSE);
+  if ($smtheme && $smtheme !== '') {
+    $path = libraries_get_path('smartmenus');
+    $block['content']['#attached']['css'][$path . '/css/' . $smtheme . '/' . $smtheme . '.css'] = array('type' => 'file');
+    $block['content']['#attributes']['class'][] = $smtheme;
+  }
+
+  // Add CSS for the menu toggle button.
+  if (variable_get('smartmenus_toggle_' . $delta, TRUE)) {
+    $path = drupal_get_path('module', 'smartmenus');
+    $block['content']['#attached']['css'][$path . '/css/sm-menu-toggle.css'] = array('type' => 'file');
+  }
+
+  // Add orientaton class.
+  if (variable_get('smartmenus_orient_' . $delta, 'horrizontal') === 'vertical') {
+    $block['content']['#attributes']['class'][] = 'sm-vertical';
+  }
+
+  return $block;
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function smartmenus_libraries_info() {
+  $libraries['smartmenus'] = array(
+    'name' => 'Smartmenus jQuery plugin',
+    'vendor url' => 'https://www.drupal.org/project/smartmenus',
+    'download url' => 'https://github.com/vadikom/smartmenus/archive/master.zip',
+    'version arguments' => array(
+      'file' => 'jquery.smartmenus.js',
+      'pattern' => '@(?i:SmartMenus jQuery Plugin -) ([0-9\.a-z]+)@',
+      'lines' => 9,
+    ),
+    'files' => array(
+      'css' => array(
+        'css/sm-core-css.css',
+      ),
+      'js' => array(
+        'jquery.smartmenus.js' => array('scope' => 'footer'),
+      ),
+    ),
+    'variants' => array(
+      'minified' => array(
+        'files' => array(
+          'js' => array(
+            'jquery.smartmenus.min.js',
+          ),
+        ),
+      ),
+      'source' => array(
+        'files' => array(
+          'js' => array(
+            'jquery.smartmenus.js',
+          ),
+        ),
+      ),
+    ),
+  );
+
+  return $libraries;
+}

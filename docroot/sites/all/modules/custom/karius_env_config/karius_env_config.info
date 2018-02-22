@@ -1,0 +1,3 @@
+name = Karius Environment Configuration
+description = Configuration module for Karius production and development environments.
+core = 7.x

@@ -1,0 +1,40 @@
+{
+  "name": "karius",
+  "description": "A theme based on Radix.",
+  "private": true,
+  "scripts": {
+    "setup": "npm install && bower install",
+    "yarn": "yarn install && bower install",
+    "postinstall": "find node_modules/ -name '*.info' -type f -delete"
+  },
+  "devDependencies": {
+    "browser-sync": "~2.18.7",
+    "browserify": "^16.1.0",
+    "gulp": "~3.9.0",
+    "gulp-autoprefixer": "^3.1.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-imagemin": "~3.1.1",
+    "gulp-jshint": "~2.0.0",
+    "gulp-notify": "^3.0.0",
+    "gulp-plumber": "~1.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "~3.1.0",
+    "gulp-sass-glob": "1.0.8",
+    "gulp-scss-lint": "~0.4.0",
+    "gulp-shell": "~0.5.2",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-uglify": "^2.0.1",
+    "gulplog": "^1.0.0",
+    "imagemin-pngcrush": "~5.0.0",
+    "jshint": "~2.9.1",
+    "lodash": "^4.17.5",
+    "node-sass": "^4.5.0",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0",
+    "watchify": "^3.10.0"
+  },
+  "dependencies": {
+    "jquery": "^3.3.1",
+    "parallax-js": "^3.1.0"
+  }
+}

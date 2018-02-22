@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_init().
+ */
+function karius_env_config_init() {
+  if (isset($_ENV['HTTP_HOST'])) {
+	switch ($_ENV['HTTP_HOST']) {
+	  case 'karius.local':
+		if (!module_exists('devel')) {
+		  module_enable(array('devel'));
+		  drupal_set_message('Karius Environment Configuration(karius_env_config): Devel module enabled.');
+
+		}
+		break;
+	  default:
+		if (module_exists('devel')) {
+		  module_disable(array('devel'));
+		  drupal_set_message('Karius Environment Configuration(karius_env_config): Devel module disabled.');
+		}
+	}
+  }
+}

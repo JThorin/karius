@@ -1,0 +1,48 @@
+<?php
+/**
+ * @file
+ * Requirements, install, update, and uninstall functions for the Smartmenus module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function smartmenus_uninstall() {
+  foreach (range(1, variable_get('smartmenus_block_count', 1)) as $delta) {
+    variable_del('smartmenus_menu_' . $delta);
+    variable_del('smartmenus_orient_' . $delta);
+    variable_del('smartmenus_toggle_' . $delta);
+  }
+  variable_del('smartmenus_block_count');
+  variable_del('smartmenus_theme');
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function smartmenus_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    $t = get_t();
+    $library = libraries_detect('smartmenus');
+
+    if (empty($library['installed'])) {
+      $requirements['smartmenus_plugin'] = array(
+        'title' => $t('Smartmenus plugin'),
+        'severity' => REQUIREMENT_ERROR,
+        'value' => t('Missing library'),
+        'description' => $t('You need to download the !plugin, extract the archive, place the decompressed files in the %path directory on your server, and rename the directory to simply smartmenus.', array('!plugin' => l($t('Smartmenus jQuery plugin'), $library['download url']), '%path' => 'sites/all/libraries')),
+      );
+    }
+    else {
+      $requirements['smartmenus_plugin'] = array(
+        'title' => $t('Smartmenus plugin'),
+        'severity' => REQUIREMENT_OK,
+        'value' => $library['version'],
+      );
+    }
+  }
+
+  return $requirements;
+}

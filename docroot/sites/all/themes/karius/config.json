@@ -1,0 +1,37 @@
+{
+  "name": "karius",
+  "description": "A theme based on Radix.",
+  "browserSyncProxy" : "https://karius.local",
+  "bowerDir": "./bower_components",
+  "css": {
+    "file" : "karius.style.scss",
+    "src": [
+      "scss/**/*.scss"
+    ],
+    "dest": "assets/css",
+    "includePaths": [
+      "./bower_components/bootstrap-sass/assets/stylesheets",
+      "./bower_components/font-awesome/scss"
+    ]
+  },
+  "js": {
+	"main": "assets/js/main.js",
+    "src": [
+      "assets/js/**/*.js",
+	  "!./assets/js/main-bundle.min.js"
+    ],
+    "dest": "assets/js"
+  },
+  "images": {
+    "src": [
+      "assets/images/**/*"
+    ],
+    "dest": "assets/images/"
+  },
+  "fonts": {
+    "src": [
+      "./bower_components/font-awesome/fonts/**.*"
+    ],
+    "dest": "./assets/fonts/"
+  }
+}
